@@ -1,29 +1,22 @@
-#' @description
-#' This function removes genes that have very low counts.
-#' It checks how many counts each gene has in total, and if it's too small,
-#' the gene is filtered out. This helps clean up the dataset before doing
-#' any analysis.
+#' Filter low expressed genes (edgeR)
 #'
-#' @param count_data A data frame containing gene counts.
-#' Each row is a gene and each column is a sample.
+#' Removes genes with very low expression before running edgeR.
+#' This uses edgeR's recommended filtering method (filterByExpr).
 #'
-#' @param min_count The minimum total count a gene must have.
-#' Genes below this number are removed. Default is 10.
+#' @param count_data Count matrix/data.frame (rows = genes, cols = samples)
+#' @param group Group labels for samples (same order as columns)
 #'
-#' @return A filtered version of the data frame where only genes with
-#' enough counts are kept.
-#'
-#' @examples
-#' filtered <- filterLowExpressed(my_counts, min_count = 10)
+#' @return Filtered count matrix
 #'
 #' @export
-filterLowExpressed <- function(count_data, min_count = 10) {
+filterLowExpressed <- function(count_data, group) {
 
-  # remove genes that don't have enough counts
-  keep <- rowSums(count_data) >= min_count
+  if (!requireNamespace("edgeR", quietly = TRUE)) {
+    stop("edgeR package is required.")
+  }
 
-  # keep only the rows that passed the filter
-  filtered_data <- count_data[keep, ]
+  y <- edgeR::DGEList(counts = count_data, group = factor(group))
+  keep <- edgeR::filterByExpr(y)
 
-  return(filtered_data)
+  count_data[keep, ]
 }
