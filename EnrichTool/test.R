@@ -1,10 +1,10 @@
 #This is an example script on how to run the functions
 
 #Import count data and filter on log 2 cpm
-count_table <- import_RNA("E-MTAB-2523.counts.txt")
+count_table <- import_RNA("Examples/E-MTAB-2523.counts.txt")
 
 #Extract the sample information from sdrf file
-sdrf <- data.table::fread("E-MTAB-2523_sample table.txt")
+sdrf <- data.table::fread("Examples/E-MTAB-2523_sample table.txt")
 
 #Set the group variable and make "healthy" baseline
 Sample <- sdrf$sample
@@ -24,3 +24,6 @@ head(ora$KEGG)
 
 #export result
 exportToExcel(def_res)
+
+#plot enrichment analysis
+ora_plot(ora)
