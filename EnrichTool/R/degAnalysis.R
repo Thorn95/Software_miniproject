@@ -1,15 +1,17 @@
-#' @description
-#' Find differentially expressed genes with DESeq2.
+#' Differential expression analysis with edgeR
 #'
-#' @param count_data A matrix or data frame with raw counts.
-#'   Rows are genes, columns are samples.
-#' @param group A vector with the group label for each sample
-#'   (for example c("A","A","B","B")).
-#' @param alpha FDR cut-off for padj. Default is 0.05.
-#' @param lfc_cutoff Minimum |log2 fold change| to keep. Default is 1.
+#' This function runs a standard edgeR workflow to find genes that are
+#' differentially expressed between two groups (e.g. cancer vs normal).
 #'
-#' @return A data frame with one row per gene and the columns:
-#'   gene, log2FoldChange, pvalue and padj.
+#' @param count_data A matrix/data.frame of raw read counts.
+#'   Rows = genes, columns = samples. Row names should be gene symbols.
+#' @param group A vector with the group label for each sample (same order as columns in count_data).
+#'   Example: c("Normal","Normal","Cancer","Cancer")
+#' @param alpha FDR cutoff. Default is 0.05.
+#' @param lfc_cutoff Minimum absolute log2 fold change. Default is 1.
+#'
+#' @return A data.frame with significant genes and these columns:
+#'   gene, logFC, PValue, FDR
 #'
 #' @examples
 #' # deg <- degAnalysis(my_counts, my_group)
@@ -17,38 +19,37 @@
 #' @export
 degAnalysis <- function(count_data, group, alpha = 0.05, lfc_cutoff = 1) {
 
-  # check that DESeq2 is available
-  if (!requireNamespace("DESeq2", quietly = TRUE)) {
-    stop("Package 'DESeq2' is needed but not installed.")
+  if (!requireNamespace("edgeR", quietly = TRUE)) {
+    stop("Package 'edgeR' is needed but not installed.")
   }
 
-  # make a small data frame with the group information
-  col_data <- data.frame(group = factor(group))
-  rownames(col_data) <- colnames(count_data)
+  group <- factor(group)
 
-  # build DESeq2 object from the raw counts
-  dds <- DESeq2::DESeqDataSetFromMatrix(
-    countData = round(count_data),  # counts must be integers
-    colData   = col_data,
-    design    = ~ group
-  )
+  # Build edgeR object
+  y <- edgeR::DGEList(counts = count_data, group = group)
 
-  # run the DESeq2 pipeline (size factors, dispersion, tests, etc.)
-  dds <- DESeq2::DESeq(dds)
+  # Library size normalization (TMM)
+  y <- edgeR::calcNormFactors(y)
 
-  # get results: log2FC, p-value, padj
-  res    <- DESeq2::results(dds)
-  res_df <- as.data.frame(res)
+  # Design matrix for two-group comparison
+  design <- stats::model.matrix(~ group)
 
-  # add gene names as a column
-  res_df$gene <- rownames(res_df)
+  # Estimate dispersion and fit model
+  y <- edgeR::estimateDisp(y, design)
+  fit <- edgeR::glmFit(y, design)
 
-  # keep only useful columns and remove NAs
-  res_df <- res_df[, c("gene", "log2FoldChange", "pvalue", "padj")]
-  res_df <- res_df[!is.na(res_df$padj), ]
+  # Test the group effect (2nd coefficient is the group difference)
+  lrt <- edgeR::glmLRT(fit, coef = 2)
 
-  # apply cut-offs: FDR < alpha and big enough |log2FC|
-  keep <- res_df$padj < alpha & abs(res_df$log2FoldChange) >= lfc_cutoff
-  res_df[keep, ]
+  # Get full results table
+  tab <- edgeR::topTags(lrt, n = Inf)$table
+  tab$gene <- rownames(tab)
+
+  # Keep only the columns we need
+  tab <- tab[, c("gene", "logFC", "PValue", "FDR")]
+
+  # Apply cutoffs
+  keep <- tab$FDR < alpha & abs(tab$logFC) >= lfc_cutoff
+  tab[keep, ]
 }
 
