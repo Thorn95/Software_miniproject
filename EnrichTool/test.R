@@ -7,23 +7,24 @@ count_table <- import_RNA("Examples/E-MTAB-2523.counts.txt")
 sdrf <- data.table::fread("Examples/E-MTAB-2523_sample table.txt")
 
 #Set the group variable and make "healthy" baseline
+Patient <- factor(sdrf$individual)
 Sample <- sdrf$sample
 Disease <- factor(sdrf$disease, levels = c("normal", "carcinoma"))
 
-SampleTable <- data.frame(Sample, Disease)
+SampleTable <- data.frame(Sample, Disease, Patient)
 SampleTable <- data.frame(SampleTable, row.names = 1)
 
 #Run DEG analysis on the filtered count data and provide the group variable
-def_res <- degAnalysis(count_table, SampleTable$Disease)
+deg_res <- degAnalysis(count_table, SampleTable$Disease)
 
 #Run ORA (GO and KEGG) on the deg results
-ora <- ora_res(def_res, "SYMBOL")
+ora <- ora_res(deg_res, "SYMBOL")
 
 head(ora$GO)
 head(ora$KEGG)
 
 #export result
-exportToExcel(def_res)
+exportToExcel(deg_res)
 
 #plot enrichment analysis
 ora_plot(ora)
