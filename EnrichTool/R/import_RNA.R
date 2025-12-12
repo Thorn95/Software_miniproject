@@ -1,25 +1,39 @@
-#' import_RNA
+#' Import RNA-seq count data and sample information
 #'
-#' @description
-#' Imports RNA-seq count data and performs filtering on log2 CPM
+#' This function reads RNA-seq count data and a sample table from files.
+#' It only imports the data and does not perform filtering or analysis.
 #'
-#' @param file RNA-seq count file.
-#' @param cutoff Cutoff value for filtering rows with low expression
+#' @param count_file Path to the RNA-seq count file (tab-separated).
+#'   Rows = genes, columns = samples.
+#' @param sample_file Path to the sample metadata file (tab-separated).
 #'
-#' @return Filtered RNA-seq count data.
+#' @return A list with two elements:
+#'   counts  - count matrix
+#'   samples - sample metadata
+#'
+#' @examples
+#' # data <- import_RNA("counts.txt", "samples.txt")
 #'
 #' @export
-#'
-#' @example
-#' library(EnrhichTool)
-#' import_RNA("path/to/file.txt", cutoff = 1)
-#'
-import_RNA <- function(file, cutoff = 1){
-  mat <- read.table(file, header=TRUE, as.is=TRUE, row.names=1, sep="\t")
+import_RNA <- function(count_file, sample_file) {
 
-  meanLog2cpm <- rowMeans(log2(edgeR::cpm(mat) + 1))
+  counts <- read.table(
+    count_file,
+    header = TRUE,
+    row.names = 1,
+    sep = "\t",
+    check.names = FALSE
+  )
 
-  mat <- mat[meanLog2cpm > cutoff,]
+  samples <- read.table(
+    sample_file,
+    header = TRUE,
+    sep = "\t",
+    stringsAsFactors = FALSE
+  )
 
-  return(mat)
+  list(
+    counts = counts,
+    samples = samples
+  )
 }
