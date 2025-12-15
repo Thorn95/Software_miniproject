@@ -1,0 +1,88 @@
+---
+title: "User Manual - EnrichTool"
+author: "Martin Törn, Aneeqa Nadeem"
+date: "2025-12-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Enrichment analysis using EnrichTool 
+
+In manual will walk you though the steps required to perform enrichment analysis on a case study dataset.
+
+The manual is divded into parts where each function is explained:
+
+* Importing the data
+* Identification of differentially expressed genes
+* Exporting results
+* Over representation analysis (ORA)
+* Visualization of ORA results
+
+### Importing the data
+
+The RNA-seq count data can be imported with the function *import_RNA()* which needs the path to your count data and has a default filter of rows by mean log2 cpm > 1. This can be changed by setting the parameter *cutoff = int*.
+
+```{r import_RNA() code}
+library(EnrichTool)
+#Import count data and filter on log 2 cpm
+count_table <- import_RNA("Examples/E-MTAB-2523.counts.txt")
+```
+
+### Identification of differentially expressed genes
+
+To identify differentially expressed gene, the function *degAnalysis()* can be used. When using this function you might need to setup desired design for you study. The example below is a partially paired case study which means that we create one vector with group and one with id and then these vector can be passed to the function along with the filtered count data generated from *import_RNA()*.
+
+There are two default parameters *alpha* for the significance set to < 0.05 and *lfc_cutoff* for a filter of abolute logfold change >= 1. These paramters can be changed to the desired threshold.
+
+```{r degAnalysis code}
+#Extract the sample information from sdrf file
+sdrf <- data.table::fread("Examples/E-MTAB-2523_sample table.txt")
+
+#Set the group variable and make "healthy" baseline
+Patient <- factor(sdrf$individual)
+Sample <- sdrf$sample
+Disease <- factor(sdrf$disease, levels = c("normal", "carcinoma"))
+
+SampleTable <- data.frame(Sample, Disease, Patient)
+SampleTable <- data.frame(SampleTable, row.names = 1)
+
+#Run DEG analysis on the filtered count data and provide the group variable
+deg_res <- degAnalysis(count_table, SampleTable$Disease, SampleTable$Patient)
+```
+
+### Exporting results
+
+Exporting the results from the DEG analysis is done with the function *exportToExcel()*. This function needs the result generated from previous function *degAnalysis()* and will then generate an excel file with DEGs.
+
+The file name can be set using the parameter *file_name = "youfilename.xlsx"*, but it is not required.
+
+```{r exportToExcel() code}
+#export result
+exportToExcel(deg_res)
+```
+
+### Over representation analysis (ORA)
+
+Over representation analysis (ORA) is preformed using the function *ora_res* on the DEG results generated from previous function *degAnalysis()* and generates a list of results including enrichment analysis using GO and KEGG. 
+
+The parameter *key_type* is by default set to ENSEMBL but can be altered to suit your need. In the example below the *key_type* is set to SYMBOL.
+
+```{r ora_res() code}
+#Run ORA (GO and KEGG) on the deg results
+ora <- ora_res(deg_res, key_type = "SYMBOL")
+```
+
+### Visualization of ORA results
+
+The results from ORA can be visualized using the function *ora_plot()* which can be used on the output from the previous function *ora_res()*. This will by default generate 2 dotplots and 2 cnetplots for GO and KEGG enrichment analysis.
+
+If only one type of plot is desired the paramter *plots* can be set to either "dotplot" or "cnetplot".
+
+```{r plot_ora() code}
+#plot enrichment analysis
+ora_plot(ora)
+```
+
