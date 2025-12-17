@@ -10,7 +10,7 @@
 #'
 #' @export
 #'
-#' @example
+#' @examples
 #' library(EnrhichTool)
 #' import_RNA("path/to/file.txt", cutoff = 1)
 #'

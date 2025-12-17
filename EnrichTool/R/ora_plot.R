@@ -12,7 +12,7 @@
 #' @return
 #' Plots that visualizes the results from ORA
 #'
-#' @example
+#' @examples
 #' library(EnrichTool)
 #' ora_plot(ora_res, plots = "dotplot")
 #'
@@ -31,8 +31,8 @@ ora_plot <- function(ora_res, plots = c("dotplot", "cnetplot")){
     dot_kegg <- clusterProfiler::dotplot(KEGG, showCategory = 10) +
       ggplot2::ggtitle("KEGG Enrichment")
 
-    ggplot2::ggsave("dot_go.png", plot = dot_go, width = 6, height = 4)
-    ggplot2::ggsave("dot_kegg.png", plot = dot_kegg, width = 6, height = 4)
+    ggplot2::ggsave("dot_go.png", plot = dot_go, width = 10, height = 8, dpi = 300)
+    ggplot2::ggsave("dot_kegg.png", plot = dot_kegg, width = 10, height = 8, dpi = 300)
   }
 
 
@@ -40,19 +40,19 @@ ora_plot <- function(ora_res, plots = c("dotplot", "cnetplot")){
   if ("cnetplot" %in% plots){
 
     GO <- DOSE::setReadable(GO, "org.Hs.eg.db", "ENTREZID")
-    cnet_go <- clusterProfiler::cnetplot(GO, showCategory = 5) +
+    cnet_go <- enrichplot::cnetplot(GO, showCategory = 5) +
       ggplot2::ggtitle("GO Enrichment Network") +
-      ggplot2::theme(plot.title = ggplot2::element_text(color="black", size=20, face="bold.italic"),
+      ggplot2::theme(plot.title = ggplot2::element_text(color="black", size=15, face="bold.italic"),
                      plot.background = ggplot2::element_rect(fill = "white"))
 
     KEGG <- DOSE::setReadable(KEGG, "org.Hs.eg.db", "ENTREZID")
-    cnet_kegg <- clusterProfiler::cnetplot(KEGG, showCategory = 5) +
+    cnet_kegg <- enrichplot::cnetplot(KEGG, showCategory = 5) +
       ggplot2::ggtitle("KEGG Enrichment Network") +
-      ggplot2::theme(plot.title = ggplot2::element_text(color="black", size=20, face="bold.italic"),
+      ggplot2::theme(plot.title = ggplot2::element_text(color="black", size=15, face="bold.italic"),
                      plot.background = ggplot2::element_rect(fill = "white"))
 
-    ggplot2::ggsave("cnet_go.png", plot = cnet_go)
-    ggplot2::ggsave("cnet_kegg.png", plot = cnet_kegg)
+    ggplot2::ggsave("cnet_go.png", plot = cnet_go, width = 12, height = 12, dpi = 300)
+    ggplot2::ggsave("cnet_kegg.png", plot = cnet_kegg, width = 12, height = 12, dpi = 300)
   }
 
 }

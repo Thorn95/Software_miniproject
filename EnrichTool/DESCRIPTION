@@ -1,20 +1,24 @@
 Package: EnrichTool
 Type: Package
-Title: A Simple Gene Expression Helper Tool
-Version: 0.1.0
+Title: Functions to help in Differentially Expressed and Enrichment Analysis
+Version: 0.1.1
 Authors@R: 
     person(
-        "Aneeqa", "Nadeem",
-        email = "aneeqaanadeem555@gmail.com",
+        "Martin", "Törn",
+        email = "martin.torn0805@hotmail.com",
         role = c("aut", "cre")
     )
-Description: This package provides small helper functions for RNA-seq work,
-    including importing count data, filtering low-expressed genes, exporting
-    results to Excel, and running differential expression analysis with DESeq2.
-License: MIT
+Description: Provides functions which simplify RNA-seq data analysis, including importing and filtering count data, performing differential expression analysis, running over-representation analysis for Gene Ontology and KEGG pathways, visualizing enrichment results, and export DEG results to Excel file.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
 Imports:
-    DESeq2,
-    openxlsx
+    edgeR,
+    openxlsx,
+    clusterProfiler,
+    enrichplot,
+    org.Hs.eg.db
+Suggests:
+    limma,
+    data.table
